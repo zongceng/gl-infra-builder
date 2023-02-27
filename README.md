@@ -57,6 +57,50 @@ $ ls -l /usr/bin/python3*
 
 # Example compile firmware
 
+## 0.Compile 360T7（2023.2.27）
+
+0.0
+
+with gl-inet package installed,original partition is not big enough,you should flash the bl blow.
+
+https://github.com/FUjr/gl-infra-builder
+
+1.1  Compile 360t7-108M OpenWrt firmware(No GL.iNet packages)
+
+```
+ git clone https://github.com/gl-inet/gl-infra-builder.git && cd gl-infra-builder
+```
+
+```
+ python3 setup.py -c configs/config-mt798x-7.6.6.1.yml && cd mt7981
+```
+
+```
+ ./scripts/gen_config.py target_mt7981_360t7-108M luci
+```
+
+1.2 Compile 360t7-108M GL.iNet standard firmware
+
+```
+ git clone https://github.com/gl-inet/glinet4.x.git
+```
+
+```
+ cp ./glinet4.x/pkg_config/gl_pkg_config_mt7981_mt2500.mk  ./glinet4.x/mt7981/gl_pkg_config.mk
+```
+
+```
+ ./scripts/gen_config.py target_mt7981_360t7-108M glinet_depends
+```
+
+```
+ make V=s -j5 GL_PKGDIR=`pwd`/glinet4.x/mt7981/
+```
+
+## 
+
+
+
 ## 1. Compile MT2500(2023.02.22)
 
   1.1  Compile MT2500 OpenWrt firmware(No GL.iNet packages)
@@ -74,6 +118,7 @@ $ ls -l /usr/bin/python3*
 ```
 
 1.2 Compile MT2500 GL.iNet standard firmware
+
 ```
  git clone https://github.com/gl-inet/glinet4.x.git
 ```
