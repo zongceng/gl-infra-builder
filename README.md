@@ -63,7 +63,7 @@ $ ls -l /usr/bin/python3*
 
 with gl-inet package installed,original partition is not big enough,you should flash the bl blow.
 
-https://github.com/FUjr/gl-infra-builder
+https://github.com/hanwckf/bl-mt798x
 
 1.1  Compile 360t7-108M OpenWrt firmware(No GL.iNet packages)
 
