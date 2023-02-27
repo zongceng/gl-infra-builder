@@ -1,0 +1,35 @@
+---
+profile: mt7981-360-t7-108M
+target: mediatek
+subtarget: mt7981
+description: Build image for the GL.iNET 360T7 108M
+
+feeds:
+  - name: gl_feed_common
+    uri: https://github.com/gl-inet/gl-feeds.git
+    revision: ac1ff5fb455c6d304aa435abb1c3eccf4878e28b
+  - name: gl_feed_21_02
+    uri: https://github.com/gl-inet/gl-feeds.git
+    revision: 581563a214d313c367d7ffe5a1e9038fc18292ed
+  - name: gl_feed_mtk
+    uri: https://github.com/gl-inet/gl-feeds.git
+    revision: 5e48f72b4020fca612bedc480231c9081a00efa4
+
+packages:
+  - ethtool
+  - iwinfo
+  - wireless-tools
+  - gl-sdk4-mtk-wifi-v2
+  - kmod-conninfra-mt7981-ko
+  - kmod-mt-wifi-mt7981-ko
+  - kmod-warp-mt7981-ko
+  - kmod-mediatek_hnat
+  - kmod-gl-sdk4-fan
+  - mii_mgr
+  - mtkhnat_util
+  - regs
+  - luci
+  - 8021xd
+  - fwdd
+  - kmod-mtfwd
+  - kmod-mtqos
