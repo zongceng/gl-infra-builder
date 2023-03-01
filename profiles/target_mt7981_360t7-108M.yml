@@ -14,7 +14,7 @@ feeds:
   - name: gl_feed_mtk
     uri: https://github.com/gl-inet/gl-feeds.git
     revision: 5e48f72b4020fca612bedc480231c9081a00efa4
-
+  
 packages:
   - ethtool
   - iwinfo
@@ -33,3 +33,14 @@ packages:
   - fwdd
   - kmod-mtfwd
   - kmod-mtqos
+  - kmod-zram
+  - tailscale
+  - tailscaled
+  - dhcpdiscover
+  - zram-swap
+  - zerotier
+  - kmod-fs-nfs-v4
+  - kmod-fs-nfsd
+  - nfs-kernel-server
+  - nfs-utils-libs
+  - vsftpd-tls
