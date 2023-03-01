@@ -86,7 +86,7 @@ https://github.com/hanwckf/bl-mt798x
 ```
 
 ```
- cp ./glinet4.x/pkg_config/gl_pkg_config_mt7981_mt2500.mk  ./glinet4.x/mt7981/gl_pkg_config.mk
+ cp ./glinet4.x/pkg_config/gl_pkg_config_mt7981_mt3000.mk  ./glinet4.x/mt7981/gl_pkg_config.mk
 ```
 
 ```
