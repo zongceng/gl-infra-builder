@@ -99,6 +99,18 @@ packages:
   - tor
   - tor-geoip
   - swconfig
+  - kmod-zram
+  - tailscale
+  - tailscaled
+  - dhcpdiscover
+  - zram-swap
+  - zerotier
+  - kmod-fs-nfs-v4
+  - kmod-fs-nfsd
+  - nfs-kernel-server
+  - nfs-utils-libs
+  - vsftpd-tls
+
 
 
 
