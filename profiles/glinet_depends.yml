@@ -98,14 +98,19 @@ packages:
   - tor
   - tor-geoip
   - swconfig
-  - dhcpdiscover
-  - vsftpd-tls
   - nfs-kernel-server
   - nfs-kernel-server-utils
+  - kmod-zram
   - tailscale
+  - tailscaled
+  - dhcpdiscover
+  - zram-swap
   - zerotier
-
-
+  - kmod-fs-nfs-v4
+  - kmod-fs-nfsd
+  - nfs-kernel-server
+  - nfs-utils-libs
+  - vsftpd-tls
 
 diffconfig: |
   CONFIG_SIGNATURE_CHECK=n

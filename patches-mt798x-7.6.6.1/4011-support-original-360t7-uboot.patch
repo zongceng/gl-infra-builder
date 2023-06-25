@@ -1,0 +1,90 @@
+From 12c791651c6ff7117e9ef7b2751e96a04e579458 Mon Sep 17 00:00:00 2001
+From: fujr <fjrcn@outlook.com>
+Date: Thu, 2 Mar 2023 06:38:10 +0800
+Subject: [PATCH] add support for origin uboot of 360t7(not recommmand)
+
+---
+ .../arm64/boot/dts/mediatek/mt7981-360-t7.dts | 71 +++++++++++++++++++
+ 1 file changed, 71 insertions(+)
+ create mode 100644 target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-360-t7.dts
+
+diff --git a/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-360-t7.dts b/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-360-t7.dts
+new file mode 100644
+index 0000000000..8b1de92dfa
+--- /dev/null
++++ b/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-360-t7.dts
+@@ -0,0 +1,71 @@
++/dts-v1/;
++#include "mt7981-360-t7-base.dtsi"
++
++/ {
++	nmbm_spim_nand {
++		compatible = "generic,nmbm";
++
++		#address-cells = <1>;
++		#size-cells = <1>;
++
++		lower-mtd-device = <&spi_nand>;
++		forced-create;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "BL2";
++				reg = <0x00 0x100000>;
++			};
++
++			partition@100000 {
++				label = "u-boot-env";
++				reg = <0x100000 0x80000>;
++			};
++
++			partition@180000 {
++				label = "Factory";
++				reg = <0x180000 0x200000>;
++			};
++
++			partition@380000 {
++				label = "FIP";
++				reg = <0x380000 0x200000>;
++			};
++
++			partition@580000 {
++				label = "ubi";
++				reg = <0x580000 0x2400000>;
++			};
++
++			partition@2980000 {
++				label = "firmware-1";
++				reg = <0x2980000 0x2400000>;
++			};
++
++			partition@4D80000 {
++				label = "plugin";
++				reg = <0x4d80000 0x2400000>;
++			};
++
++			partition@7180000 {
++				label = "stock-config";
++				reg = <0x7180000 0x100000>;
++			};
++
++			partition@7280000 {
++				label = "stock-factory";
++				reg = <0x7280000 0x80000>;
++			};
++
++			partition@7300000 {
++				label = "stock-log";
++				reg = <0x7300000 0x400000>;
++			};
++		};
++	};
++};
++
+-- 
+2.25.1
+
