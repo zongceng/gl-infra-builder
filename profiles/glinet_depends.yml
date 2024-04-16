@@ -111,6 +111,8 @@ packages:
   - nfs-kernel-server
   - nfs-utils-libs
   - vsftpd-tls
+  - conntrack
+  - mqtt
 
 diffconfig: |
   CONFIG_SIGNATURE_CHECK=n
