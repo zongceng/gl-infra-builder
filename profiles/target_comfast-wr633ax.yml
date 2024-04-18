@@ -14,8 +14,8 @@ feeds:
   - name: gl_feed_mtk
     uri: https://github.com/gl-inet/gl-feeds.git
     revision: 5e48f72b4020fca612bedc480231c9081a00efa4
-  - name: glinet
-    path: ../feeds_dir/glinet
+  - name: irorikon
+    path: ../feeds_dir/irorikon
 
 packages:
   - ethtool
