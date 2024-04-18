@@ -14,6 +14,8 @@ feeds:
   - name: gl_feed_mtk
     uri: https://github.com/gl-inet/gl-feeds.git
     revision: 5e48f72b4020fca612bedc480231c9081a00efa4
+  - name: glinet
+    path: ../feeds_dir/glinet
 
 packages:
   - ethtool
@@ -33,3 +35,9 @@ packages:
   - fwdd
   - kmod-mtfwd
   - kmod-mtqos
+  - luci-theme-argon
+  - luci-app-transip
+  - luci-app-openclash
+  - luci-compat
+  - default-settings
+  - default-settings-chn

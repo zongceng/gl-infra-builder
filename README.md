@@ -124,17 +124,9 @@ X3000
 
 # Example compile firmware
 
+## 0.Compile Comfast wr633ax（2023.03.17）
 
-## 1. Compile MT2500(2023.03.17)
-## 0.Compile 360T7（2023.2.27）
-
-0.0
-
-with gl-inet package installed,original partition is not big enough,you should flash the bl blow.
-
-https://github.com/hanwckf/bl-mt798x
-
-1.1  Compile 360t7-108M OpenWrt firmware(No GL.iNet packages)
+1.1  Compile Comfast wr633ax OpenWrt firmware(No GL.iNet packages)
 
 ```
  git clone https://github.com/gl-inet/gl-infra-builder.git && cd gl-infra-builder
@@ -145,28 +137,28 @@ https://github.com/hanwckf/bl-mt798x
 ```
 
 ```
- ./scripts/gen_config.py target_mt7981_360t7-108M luci
+ ./scripts/gen_config.py target_comfast-wr633ax luci
 ```
 
-1.2 Compile 360t7-108M GL.iNet standard firmware
+1.2 Compile Comfast wr633ax GL.iNet standard firmware
 
 ```
  git clone https://github.com/gl-inet/glinet4.x.git
 ```
 
 ```
- cp ./glinet4.x/pkg_config/gl_pkg_config_mt7981_mt3000.mk  ./glinet4.x/mt7981/gl_pkg_config.mk
+ cp ./glinet4.x/pkg_config/gl_pkg_config_mt3000.mk  ./glinet4.x/mt7981/gl_pkg_config.mk
 ```
 
 ```
- ./scripts/gen_config.py target_mt7981_360t7-108M glinet_depends
+ ./scripts/gen_config.py target_comfast-wr633ax glinet_depends
 ```
 
 ```
- make V=s -j5 GL_PKGDIR=`pwd`/glinet4.x/mt7981/
+ make V=s -j9 GL_PKGDIR=`pwd`/glinet4.x/mt7981/
 ```
 
-## 
+##
 
 
 
