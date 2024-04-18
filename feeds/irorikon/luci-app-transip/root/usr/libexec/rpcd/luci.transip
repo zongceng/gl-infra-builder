@@ -1,0 +1,232 @@
+#!/usr/bin/env lua
+
+local http = require("socket.http")
+local https = require("ssl.https")
+local fs = require "nixio.fs"
+local json = require 'dkjson'
+local jsonc = require "luci.jsonc"
+local uci = require("luci.model.uci").cursor()
+local os = require "os"
+
+local methods = {
+  get_server_config = {
+    call = function()
+      local r = {}
+      local response_body = {}
+      local res, code, response_headers, status = http.request{
+          url = server_conf_url,
+          method = "GET",
+          sink = ltn12.sink.table(response_body),
+      }
+
+      if code == 200 then
+          local response_string = table.concat(response_body)
+          local response_json = json.decode(response_string)
+          r.result = jsonc.stringify(response_json)
+          r.code = 0
+          fs.writefile("/etc/transip/server_conf.json", r.result)
+      else
+          r.result = "请求失败，状态码：" .. tostring(code)
+          r.code = -1
+      end
+      return r
+    end
+  },
+  reload_transip = {
+    call = function()
+      os.execute("/usr/bin/lua /usr/bin/transip.lua /etc/transip/server_conf.json > /dev/null 2>&1 &")
+    end
+  },
+  bind_token = {
+    call = function()
+      local r = {}
+      base_url = uci:get("transip", "@info[0]", "base_url")
+      uci:set("transip", "@info[0]", "is_bind", "未绑定")
+      uci:commit("transip")
+      local token = uci:get("transip", "@info[0]", "token")
+      if token == nil or token == "" then
+          r.result = '{"code":-1,"error":"token为空"}'
+          r.code = -1
+          return r
+      end
+      local mac = get_eth0_mac_address()
+      local request_body = {
+        token = token,
+        uuid = mac
+      }
+      local req_body = json.encode(request_body)
+      local response_body = {}
+      local res, code, response_headers, status = https.request{
+          url = base_url .. "/v1/router/token-bind",
+          method = "POST",
+          headers = {
+              ["Content-Type"] = "application/json",
+              ["Content-Length"] = tostring(#req_body)
+          },
+          source = ltn12.source.string(req_body),
+          sink = ltn12.sink.table(response_body)
+      }
+
+      if code == 200 then
+        local response_string = table.concat(response_body)
+        local response = json.decode(response_string)
+        r.result = response_string
+        if response.code == 0 then
+          r.code = 0
+          uci:set("transip", "@info[0]", "is_bind", "已绑定")
+        else
+          r.code = -1
+          uci:set("transip", "@info[0]", "is_bind", "未绑定")
+          uci:set("transip", "@info[0]", "info", response.error)
+        end
+        uci:save("transip")
+        uci:commit("transip")
+      else
+          r.result = "请求失败，状态码：" .. tostring(code)
+          r.code = -1
+      end
+      return r
+    end
+  }
+}
+
+function get_eth0_mac_address()
+  local command = "ip link show eth0 | grep link/ether | awk '{print $2}'"
+  local handle = io.popen(command)
+  local result = handle:read("*a") -- 读取所有输出
+  handle:close()
+  return result:gsub("\n", "") -- 移除结果字符串末尾的换行符
+end
+
+local function parseInput()
+  -- Input parsing - the RPC daemon calls the Lua script and
+  -- sends input to it via stdin, not as an argument on the CLI.
+  -- Thus, any testing via the lua interpreter needs to be in the form
+  -- echo '{jsondata}' | lua /usr/libexec/rpcd/script call method_name
+  local parse = jsonc.new()
+  local done, err
+
+  while true do
+      local chunk = io.read(4096)
+      if not chunk then
+          break
+      elseif not done and not err then
+          done, err = parse:parse(chunk)
+      end
+  end
+
+  if not done then
+      print(jsonc.stringify({
+          error = err or "Incomplete input for argument parsing"
+      }))
+      os.exit(1)
+  end
+
+  return parse:get()
+end
+
+local function validateArgs(func, uargs)
+  -- Validates that arguments picked out by parseInput actually match
+  -- up to the arguments expected by the function being called.
+  local method = methods[func]
+  if not method then
+      print(jsonc.stringify({error = "Method not found in methods table"}))
+      os.exit(1)
+  end
+
+  -- Lua has no length operator for tables, so iterate to get the count
+  -- of the keys.
+  local n = 0
+  for _, _ in pairs(uargs) do n = n + 1 end
+
+  -- If the method defines an args table (so empty tables are not allowed),
+  -- and there were no args, then give a useful error message about that.
+  if method.args and n == 0 then
+      print(jsonc.stringify({
+          error = "Received empty arguments for " .. func ..
+              " but it requires " .. jsonc.stringify(method.args)
+      }))
+      os.exit(1)
+  end
+
+  uargs.ubus_rpc_session = nil
+
+  local margs = method.args or {}
+  for k, v in pairs(uargs) do
+      if margs[k] == nil or (v ~= nil and type(v) ~= type(margs[k])) then
+          print(jsonc.stringify({
+              error = "Invalid argument '" .. k .. "' for " .. func ..
+                  " it requires " .. jsonc.stringify(method.args)
+          }))
+          os.exit(1)
+      end
+  end
+
+  return method
+end
+
+if arg[1] == "list" then
+  -- When rpcd starts up, it executes all scripts in /usr/libexec/rpcd
+  -- passing 'list' as the first argument. This block of code examines
+  -- all of the entries in the methods table, and looks for an attribute
+  -- called 'args' to see if there are arguments for the method.
+  --
+  -- The end result is a JSON struct like
+  -- {
+  --   "api_name": {},
+  --   "api2_name": {"host": "some_string"}
+  -- }
+  --
+  -- Which will be converted by ubus to 
+  --  "api_name":{}
+  --  "api2_name":{"host":"String"}
+  local _, rv = nil, {}
+  for _, method in pairs(methods) do rv[_] = method.args or {} end
+  print((jsonc.stringify(rv):gsub(":%[%]", ":{}")))
+elseif arg[1] == "call" then
+  -- rpcd will execute the Lua script with a first argument of 'call',
+  -- a second argument of the method name, and a third argument that's
+  -- stringified JSON.
+  --
+  -- To debug your script, it's probably easiest to start with direct
+  -- execution, as calling via ubus will hide execution errors. For example:
+  -- echo '{}' | lua /usr/libexec/rpcd/luci.example call get_sample2
+  --
+  -- or
+  --
+  -- echo '{"section": "firstf"}' | /usr/libexec/rpcd/luci.example call get_uci_value
+  --
+  -- See https://openwrt.org/docs/techref/ubus for more details on using
+  -- ubus to call your RPC script (which is what LuCI will be doing).
+  local args = parseInput()
+  local method = validateArgs(arg[2], args)
+  local run = method.call(args)
+  -- Use the result from the table which we know to be JSON already.
+  -- Anything printed on stdout is sent via rpcd to the caller. Use
+  -- the syslog functions, or logging to a file, if you need debug
+  -- logs.
+  print(run.result)
+  -- And exit with the code supplied.
+  os.exit(run.code or 0)
+elseif arg[1] == "help" then
+  local helptext = [[
+Usage:
+
+To see what methods are exported by this script:
+
+  lua luci.example list
+
+To call a method that has no arguments:
+
+  echo '{}' | lua luci.example call method_name
+
+To call a method that takes arguments:
+
+  echo '{"valid": "json", "argument": "value"}' | lua luci.example call method_name
+
+To call this script via ubus:
+
+  ubus call luci.example method_name '{"valid": "json", "argument": "value"}'
+]]
+  print(helptext)
+end

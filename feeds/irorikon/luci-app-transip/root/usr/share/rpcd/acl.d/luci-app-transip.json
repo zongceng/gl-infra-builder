@@ -1,0 +1,28 @@
+{
+  "luci-app-transip": {
+    "description": "Grant access to transip configuration",
+    "read": {
+      "file": {
+        "/etc/transip/transip.conf": ["read"]
+      },
+      "ubus": {
+        "luci.transip": [
+          "get_server_config",
+          "reload_transip",
+          "bind_token"
+        ],
+				"file": [ "read" ]
+			},
+			"uci": [ "transip" ]
+    },
+    "write": {
+      "file": {
+        "/etc/transip/transip.conf": ["write"]
+      },
+      "ubus": {
+				"file": [ "write" ]
+			},
+			"uci": [ "transip" ]
+    }
+  }
+}
