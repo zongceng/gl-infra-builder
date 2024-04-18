@@ -36,8 +36,9 @@ packages:
   - kmod-mtfwd
   - kmod-mtqos
   - luci-theme-argon
-  - luci-app-transip
+  # - luci-app-transip
   - luci-app-openclash
   - luci-compat
   - default-settings
   - default-settings-chn
+  - luci-app-ttyd
