@@ -1,0 +1,405 @@
+From 82d813a357c93fdfa71cbaaaf584454d02f330c9 Mon Sep 17 00:00:00 2001
+From: iRorikon <irorikon@88.com>
+Date: Wed, 24 Jul 2024 07:25:43 +0000
+Subject: [PATCH] add support nradio wt9103
+
+---
+ .../mediatek/mt7981-nradio-wt9103-512M.dts    | 308 ++++++++++++++++++
+ target/linux/mediatek/image/mt7981.mk         |  17 +
+ .../mt7981/base-files/etc/board.d/01_leds     |   8 +-
+ .../mt7981/base-files/etc/board.d/02_network  |   7 +
+ 4 files changed, 339 insertions(+), 1 deletion(-)
+ create mode 100644 target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-nradio-wt9103-512M.dts
+
+diff --git a/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-nradio-wt9103-512M.dts b/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-nradio-wt9103-512M.dts
+new file mode 100644
+index 00000000000..23dbf3e880e
+--- /dev/null
++++ b/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-nradio-wt9103-512M.dts
+@@ -0,0 +1,308 @@
++//CopyRight NRadio Update By Zy143L
++
++/dts-v1/;
++#include "mt7981.dtsi"
++
++/ {
++	model = "NRadio C8-660-512M";
++	compatible = "nradio,wt9103", "mediatek,mt7981";
++
++	aliases {
++		led-boot = &status_blue;
++		led-failsafe = &status_blue;
++		led-running = &status_blue;
++		led-upgrade = &status_blue;
++	};
++
++	chosen {
++		bootargs = "console=ttyS0,115200n1 loglevel=8  \
++				earlycon=uart8250,mmio32,0x11002000";
++	};
++
++	gpio-export {
++		compatible = "gpio-export";
++
++		cpepower {
++			gpio-export,name = "cpe-pwr";
++			gpio-export,output = <0>;
++			gpios = <&pio 25 GPIO_ACTIVE_LOW>;
++		};
++
++		cpesel0 {
++			gpio-export,name = "cpe-sel0";
++			gpio-export,output = <1>;
++			gpios = <&pio 24 GPIO_ACTIVE_HIGH>;
++		};
++	};
++
++	gpio-keys {
++		compatible = "gpio-keys";
++
++		button-reset {
++			label = "reset";
++			linux,code = <KEY_RESTART>;
++			gpios = <&pio 1 GPIO_ACTIVE_LOW>;
++		};
++
++		button-wps {
++			label = "wps";
++			linux,code = <KEY_WPS_BUTTON>;
++			gpios = <&pio 9 GPIO_ACTIVE_HIGH>;
++  		};
++	};
++
++	gpio-leds {
++		compatible = "gpio-leds";
++
++		status_blue: status {
++			label = "hc:blue:status";
++			gpios = <&pio 10 GPIO_ACTIVE_LOW>;
++		};
++
++		cmode5 {
++			label = "hc:blue:cmode5";
++			gpios = <&pio 11 GPIO_ACTIVE_LOW>;
++		};
++
++		cmode4 {
++			label = "hc:blue:cmode4";
++			gpios = <&pio 12 GPIO_ACTIVE_LOW>;
++		};
++
++		wifi {
++			label = "hc:blue:wifi";
++			gpios = <&pio 13 GPIO_ACTIVE_LOW>;
++		};
++	};
++
++	nmbm_spim_nand {
++		compatible = "generic,nmbm";
++
++		#address-cells = <1>;
++		#size-cells = <1>;
++
++		lower-mtd-device = <&spi_nand>;
++		forced-create;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "BL2";
++				reg = <0x00000 0x0100000>;
++				read-only;
++			};
++
++			partition@100000 {
++				label = "u-boot-env";
++				reg = <0x0100000 0x0080000>;
++			};
++
++			partition@180000 {
++				label = "factory";
++				reg = <0x180000 0x0180000>;
++			};
++
++			partition@300000 {
++				label = "bdinfo";
++				reg = <0x300000 0x0080000>;
++			};
++
++			partition@380000 {
++				label = "FIP";
++				reg = <0x380000 0x0200000>;
++			};
++
++			partition@580000 {
++				label = "ubi";
++				// reg = <0x580000 0x7000000>;
++				reg = <0x580000 0x1f400000>;
++			};
++		};
++	};
++
++    gl-hw {
++		compatible = "gl-hw-info";
++		model = "mt3000";
++		wan = "eth1";
++		lan = "eth0";
++		flash_size = <256>;
++		temperature = "/sys/devices/virtual/thermal/thermal_zone0/temp";
++		switch-button = "gpio-455";
++		reset-button = "gpio-456";
++		radio = "mt798111 mt798112";
++		cfg-partition = "/dev/mtd4";
++		dfs;
++		factory_data {
++			device_mac = "bdinfo", "0x9";
++			device_ddns = "bdinfo", "0x10";
++			device_sn_bak = "bdinfo", "0x20";
++			device_sn = "bdinfo", "0xe101";
++			country_code = "bdinfo", "0xe200";
++			device_cert = "bdinfo", "0x1000";
++		};
++	};
++};
++
++&spi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi0_flash_pins>;
++	status = "okay";
++	spi_nand: spi_nand@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "spi-nand";
++		spi-cal-enable;
++		spi-cal-mode = "read-data";
++		spi-cal-datalen = <7>;
++		spi-cal-data = /bits/ 8 <0x53 0x50 0x49 0x4E 0x41 0x4E 0x44>;
++		spi-cal-addrlen = <5>;
++		spi-cal-addr = /bits/ 32 <0x0 0x0 0x0 0x0 0x0>;
++		reg = <0>;
++		spi-max-frequency = <52000000>;
++		spi-tx-buswidth = <4>;
++		spi-rx-buswidth = <4>;
++	};
++};
++
++&pio {
++	status = "okay";
++	spi0_flash_pins: spi0-pins {
++		mux {
++			function = "spi";
++			groups = "spi0", "spi0_wp_hold";
++		};
++
++		conf-pu {
++			pins = "SPI0_CS", "SPI0_HOLD", "SPI0_WP";
++			drive-strength = <MTK_DRIVE_8mA>;
++			bias-pull-up = <MTK_PUPD_SET_R1R0_11>;
++		};
++
++		conf-pd {
++			pins = "SPI0_CLK", "SPI0_MOSI", "SPI0_MISO";
++			drive-strength = <MTK_DRIVE_8mA>;
++			bias-pull-down = <MTK_PUPD_SET_R1R0_11>;
++		};
++	};
++};
++
++&eth {
++	status = "okay";
++
++	gmac0: mac@0 {
++		compatible = "mediatek,eth-mac";
++		reg = <0>;
++		phy-mode = "2500base-x";
++
++		fixed-link {
++			speed = <2500>;
++			full-duplex;
++			pause;
++		};
++	};
++
++	gmac1: mac@1 {
++		compatible = "mediatek,eth-mac";
++		reg = <1>;
++		phy-mode = "2500base-x";
++
++		fixed-link {
++			speed = <2500>;
++			full-duplex;
++			pause;
++		};
++	};
++
++	mdio: mdio-bus {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		phy5: phy@5 {
++			// compatible = "ethernet-phy-ieee802.3-c45";
++			compatible = "ethernet-phy-id67c9.de0a";
++			reg = <5>;
++			reset-gpios = <&pio 7 1>;
++			reset-assert-us = <600>;
++			reset-deassert-us = <20000>;
++			phy-mode = "2500base-x";
++		};
++
++		phy6: phy@6 {
++			// compatible = "ethernet-phy-ieee802.3-c45";
++			compatible = "ethernet-phy-id67c9.de0a";
++			reg = <21>;
++			reset-gpios = <&pio 8 1>;
++			reset-assert-us = <600>;
++			reset-deassert-us = <20000>;
++			phy-mode = "2500base-x";
++		};
++
++		switch@0 {
++			compatible = "mediatek,mt7531";
++			reg = <31>;
++			reset-gpios = <&pio 39 0>;
++
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				port@1 {
++					reg = <1>;
++					label = "lan1";
++				};
++
++				port@2 {
++					reg = <2>;
++					label = "lan2";
++				};
++
++				port@3 {
++					reg = <3>;
++					label = "lan3";
++				};
++
++				port@5 {
++					reg = <5>;
++					label = "lan4";
++					phy-mode = "2500base-x";
++					phy-handle = <&phy5>;
++				};
++
++				port@6 {
++					reg = <6>;
++					label = "cpu";
++					ethernet = <&gmac0>;
++					phy-mode = "2500base-x";
++
++					fixed-link {
++						speed = <2500>;
++						full-duplex;
++						pause;
++					};
++				};
++			};
++		};
++	};
++};
++
++&xhci {
++	status = "okay";
++};
++
++&hnat {
++	mtketh-wan = "eth1";
++	mtketh-lan = "eth0";
++	mtketh-max-gmac = <2>;
++	status = "okay";
++};
++
++&uart0 {
++	status = "okay";
++};
++
++&watchdog {
++	status = "okay";
++};
+\ No newline at end of file
+diff --git a/target/linux/mediatek/image/mt7981.mk b/target/linux/mediatek/image/mt7981.mk
+index 26065d84f96..cfb87c0db5d 100755
+--- a/target/linux/mediatek/image/mt7981.mk
++++ b/target/linux/mediatek/image/mt7981.mk
+@@ -290,3 +290,20 @@ define Device/mt7981-zbtlink-z8103ax
+   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+ endef
+ TARGET_DEVICES += mt7981-zbtlink-z8103ax
++
++define Device/mt7981-nradio-wt9103-512M
++  DEVICE_VENDOR := GL.iNet
++  DEVICE_MODEL := NRADIO WT9103 (with 512M Flash)
++  DEVICE_DTS := mt7981-nradio-wt9103-512M
++  DEVICE_DTS_DIR := $(DTS_DIR)/mediatek
++  SUPPORTED_DEVICES := nradio,wt9103
++  UBINIZE_OPTS := -E 5
++  BLOCKSIZE := 128k
++  PAGESIZE := 2048
++  IMAGE_SIZE := 131072k
++  KERNEL_IN_UBI := 1
++  IMAGES += factory.bin
++  IMAGE/factory.bin := append-ubi | check-size $$$$(IMAGE_SIZE)
++  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
++endef
++TARGET_DEVICES += mt7981-nradio-wt9103-512M
+diff --git a/target/linux/mediatek/mt7981/base-files/etc/board.d/01_leds b/target/linux/mediatek/mt7981/base-files/etc/board.d/01_leds
+index 62214039fe3..f026e2bb323 100755
+--- a/target/linux/mediatek/mt7981/base-files/etc/board.d/01_leds
++++ b/target/linux/mediatek/mt7981/base-files/etc/board.d/01_leds
+@@ -18,12 +18,18 @@ case "$(board_name)" in
+ 	ucidef_set_led_default "green" "GREEN" "360t7:green" "1"
+ 	ucidef_set_led_default "red" "RED" "360t7:red" "0"
+ 	;;
+-zbtlink,z8103ax)
++*z8103*)
+ 	ucidef_set_led_netdev "wan" "WAN" "net" "eth1" "link tx rx"
+ 	ucidef_set_led_netdev "wifi2g" "WIFI2G" "wlan2g" "ra0" "link"
+ 	ucidef_set_led_netdev "wifi5g" "WIFI5G" "wlan5g" "rax0" "link"
+ 	ucidef_set_led_netdev "lan" "LAN" "green" "br-lan" "link tx rx"
+ 	;;
++*wt9103*)
++	ucidef_set_led_default "power" "POWER" "hc:blue:status" "1"
++	ucidef_set_led_netdev "wifi" "WIFI" "hc:blue:wifi" "rax0" "link"
++	ucidef_set_led_netdev "5g" "5G" "hc:blue:cmode5" "eth1" "tx rx"
++	ucidef_set_led_netdev "lan" "LAN" "hc:blue:cmode4" "br-lan" "tx rx"
++	;;
+ esac
+ 
+ board_config_flush
+diff --git a/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network b/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network
+index 96575d221c4..012eda7e362 100755
+--- a/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network
++++ b/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network
+@@ -43,6 +43,9 @@ mediatek_setup_interfaces()
+ 		ucidef_add_switch "switch0" \
+ 			"0:lan" "1:lan" "2:lan" "6u@eth0"
+ 		;;
++	*wt9103*)
++		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" "lan4"
++		;;
+ 	*)
+ 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" eth1
+ 		;;
+@@ -132,6 +135,10 @@ mediatek_setup_macs()
+ 		lan_mac=$(mtd_get_mac_binary "Factory" 0x4)
+ 		wan_mac=$(macaddr_add "$label_mac" 1)
+ 		;;
++	*wt9103*)
++		lan_mac=$(mtd_get_mac_binary bdinfo 0x9)
++		wan_mac=$(macaddr_add "$lan_mac" 1)
++		;;
+ 	esac
+ 
+ 	[ -n "$wan_mac" ] && ucidef_set_interface_macaddr "wan" "$wan_mac"
+-- 
+2.25.1
+
