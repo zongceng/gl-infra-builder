@@ -1,21 +1,21 @@
-From a4b7a1f86b9745abd14bf92a49f67a6df52d0786 Mon Sep 17 00:00:00 2001
+From d459d40c72b7e6697351df1115aebcc686ea1a55 Mon Sep 17 00:00:00 2001
 From: iRorikon <irorikon@88.com>
-Date: Wed, 24 Jul 2024 08:51:26 +0000
-Subject: [PATCH] add support transocks ax3000
+Date: Thu, 25 Jul 2024 06:58:12 +0000
+Subject: [PATCH] add support Transocks AX3000
 
 ---
- .../dts/mediatek/mt7981-transocks-ax3000.dts  | 267 ++++++++++++++++++
+ .../dts/mediatek/mt7981-transocks-ax3000.dts  | 254 ++++++++++++++++++
  target/linux/mediatek/image/mt7981.mk         |  17 ++
- .../mt7981/base-files/etc/board.d/02_network  |  12 +-
- 3 files changed, 295 insertions(+), 1 deletion(-)
+ .../mt7981/base-files/etc/board.d/02_network  |   9 +
+ 3 files changed, 280 insertions(+)
  create mode 100644 target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-transocks-ax3000.dts
 
 diff --git a/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-transocks-ax3000.dts b/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-transocks-ax3000.dts
 new file mode 100644
-index 0000000000..5e731fde5c
+index 0000000000..647479e86b
 --- /dev/null
 +++ b/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-transocks-ax3000.dts
-@@ -0,0 +1,267 @@
+@@ -0,0 +1,254 @@
 +/dts-v1/;
 +#include "mt7981.dtsi"
 +/ {
@@ -145,94 +145,7 @@ index 0000000000..5e731fde5c
 +		mediatek,ethsys = <&ethsys>;
 +		#address-cells = <1>;
 +		#size-cells = <0>;
-+  };
-+};
-+
-+&afe {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pcm_pins>;
-+	status = "okay";
-+};
-+
-+&uart0 {
-+	status = "okay";
-+};
-+
-+&watchdog {
-+	status = "okay";
-+};
-+
-+&eth {
-+	status = "okay";
-+
-+	gmac0: mac@0 {
-+		compatible = "mediatek,eth-mac";
-+		reg = <0>;
-+		phy-mode = "2500base-x";
-+
-+		fixed-link {
-+			speed = <2500>;
-+			full-duplex;
-+			pause;
-+		};
 +	};
-+
-+	gmac1: mac@1 {
-+		compatible = "mediatek,eth-mac";
-+		reg = <1>;
-+		phy-mode = "2500base-x";
-+
-+		fixed-link {
-+			speed = <2500>;
-+			full-duplex;
-+			pause;
-+		};
-+	};
-+
-+	mdio: mdio-bus {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+	};
-+};
-+
-+&gsw {
-+	mediatek,mdio = <&mdio>;
-+	mediatek,portmap = "llllw";
-+	mediatek,mdio_master_pinmux = <1>;
-+	reset-gpios = <&pio 39 0>;
-+	interrupt-parent = <&pio>;
-+	interrupts = <38 IRQ_TYPE_LEVEL_HIGH>;
-+	status = "okay";
-+
-+	port5: port@5 {
-+		compatible = "mediatek,mt753x-port";
-+		reg = <5>;
-+		phy-mode = "sgmii";
-+
-+		fixed-link {
-+			speed = <2500>;
-+			full-duplex;
-+		};
-+	};
-+
-+	port6: port@6 {
-+		compatible = "mediatek,mt753x-port";
-+		mediatek,ssc-on;
-+		reg = <6>;
-+		phy-mode = "sgmii";
-+
-+		fixed-link {
-+			speed = <2500>;
-+			full-duplex;
-+		};
-+	};
-+};
-+
-+&hnat {
-+	mtketh-wan = "eth1";
-+	mtketh-lan = "eth0";
-+	mtketh-max-gmac = <2>;
-+	status = "okay";
 +};
 +
 +&spi0 {
@@ -277,10 +190,84 @@ index 0000000000..5e731fde5c
 +	};
 +};
 +
-+&xhci {
-+	mediatek,u3p-dis-msk = <0x0>;
-+	phys = <&u2port0 PHY_TYPE_USB2>,
-+	       <&u3port0 PHY_TYPE_USB3>;
++&eth {
++	status = "okay";
++
++	gmac0: mac@0 {
++		compatible = "mediatek,eth-mac";
++		reg = <0>;
++		phy-mode = "2500base-x";
++
++		fixed-link {
++			speed = <2500>;
++			full-duplex;
++			pause;
++		};
++	};
++
++	gmac1: mac@1 {
++		compatible = "mediatek,eth-mac";
++		reg = <1>;
++		phy-mode = "2500base-x";
++
++		fixed-link {
++			speed = <2500>;
++			full-duplex;
++			pause;
++		};
++	};
++	mdio: mdio-bus {
++		#address-cells = <1>;
++		#size-cells = <0>;
++	};
++
++};
++
++&gsw {
++	mediatek,mdio = <&mdio>;
++	mediatek,mdio_master_pinmux = <0>;
++	reset-gpios = <&pio 39 0>;
++	interrupt-parent = <&pio>;
++	interrupts = <38 IRQ_TYPE_LEVEL_HIGH>;
++	status = "okay";
++
++	port5: port@5 {
++		compatible = "mediatek,mt753x-port";
++		reg = <5>;
++		phy-mode = "sgmii";
++
++		fixed-link {
++			speed = <2500>;
++			full-duplex;
++		};
++	};
++
++	port6: port@6 {
++		compatible = "mediatek,mt753x-port";
++		mediatek,ssc-on;
++		reg = <6>;
++		phy-mode = "sgmii";
++
++		fixed-link {
++			speed = <2500>;
++			full-duplex;
++		};
++	};
++};
++
++&hnat {
++	mtketh-wan = "eth0";
++	mtketh-lan = "eth1";
++	mtketh-ppd = "eth1";
++	mtketh-max-gmac = <2>;
++	status = "okay";
++};
++
++&uart0 {
++	status = "okay";
++};
++
++&watchdog {
 +	status = "okay";
 +};
 \ No newline at end of file
@@ -310,10 +297,10 @@ index cfb87c0db5..101e1d2ee5 100755
 +endef
 +TARGET_DEVICES += mt7981-transocks-ax3000
 diff --git a/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network b/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network
-index 012eda7e36..be0196ef26 100755
+index 210678948b..05343deff5 100755
 --- a/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network
 +++ b/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network
-@@ -46,6 +46,11 @@ mediatek_setup_interfaces()
+@@ -45,6 +45,11 @@ mediatek_setup_interfaces()
  	*wt9103*)
  		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" "lan4"
  		;;
@@ -325,21 +312,13 @@ index 012eda7e36..be0196ef26 100755
  	*)
  		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" eth1
  		;;
-@@ -133,12 +138,17 @@ mediatek_setup_macs()
- 		;;
- 	*z8103*)
- 		lan_mac=$(mtd_get_mac_binary "Factory" 0x4)
--		wan_mac=$(macaddr_add "$label_mac" 1)
-+		wan_mac=$(macaddr_add "$lan_mac" 1)
- 		;;
- 	*wt9103*)
+@@ -137,6 +142,10 @@ mediatek_setup_macs()
  		lan_mac=$(mtd_get_mac_binary bdinfo 0x9)
  		wan_mac=$(macaddr_add "$lan_mac" 1)
  		;;
 +	*ax3000*)
 +		lan_mac=$(mtd_get_mac_binary $part_name 0x24)
-+		wan_mac="$(macaddr_add $wan_mac 1)"
-+		local wifi_mac="$(mtd_get_mac_binary $part_name 0x04)"
++		wan_mac="$(macaddr_add $lan_mac 1)"
 +		;;
  	esac
  

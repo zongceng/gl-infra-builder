@@ -1,19 +1,19 @@
-From 82d813a357c93fdfa71cbaaaf584454d02f330c9 Mon Sep 17 00:00:00 2001
+From 287764bafecd59d7a262eb5666ff88bc6f3fa2d6 Mon Sep 17 00:00:00 2001
 From: iRorikon <irorikon@88.com>
-Date: Wed, 24 Jul 2024 07:25:43 +0000
-Subject: [PATCH] add support nradio wt9103
+Date: Thu, 25 Jul 2024 05:17:52 +0000
+Subject: [PATCH] add support Nradio WT9103 512M
 
 ---
  .../mediatek/mt7981-nradio-wt9103-512M.dts    | 308 ++++++++++++++++++
  target/linux/mediatek/image/mt7981.mk         |  17 +
- .../mt7981/base-files/etc/board.d/01_leds     |   8 +-
+ .../mt7981/base-files/etc/board.d/01_leds     |   6 +
  .../mt7981/base-files/etc/board.d/02_network  |   7 +
- 4 files changed, 339 insertions(+), 1 deletion(-)
+ 4 files changed, 338 insertions(+)
  create mode 100644 target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-nradio-wt9103-512M.dts
 
 diff --git a/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-nradio-wt9103-512M.dts b/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-nradio-wt9103-512M.dts
 new file mode 100644
-index 00000000000..23dbf3e880e
+index 0000000000..ea479ccfc2
 --- /dev/null
 +++ b/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-nradio-wt9103-512M.dts
 @@ -0,0 +1,308 @@
@@ -325,9 +325,8 @@ index 00000000000..23dbf3e880e
 +&watchdog {
 +	status = "okay";
 +};
-\ No newline at end of file
 diff --git a/target/linux/mediatek/image/mt7981.mk b/target/linux/mediatek/image/mt7981.mk
-index 26065d84f96..cfb87c0db5d 100755
+index 26065d84f9..cfb87c0db5 100755
 --- a/target/linux/mediatek/image/mt7981.mk
 +++ b/target/linux/mediatek/image/mt7981.mk
 @@ -290,3 +290,20 @@ define Device/mt7981-zbtlink-z8103ax
@@ -352,17 +351,10 @@ index 26065d84f96..cfb87c0db5d 100755
 +endef
 +TARGET_DEVICES += mt7981-nradio-wt9103-512M
 diff --git a/target/linux/mediatek/mt7981/base-files/etc/board.d/01_leds b/target/linux/mediatek/mt7981/base-files/etc/board.d/01_leds
-index 62214039fe3..f026e2bb323 100755
+index 1a911db3ed..f026e2bb32 100755
 --- a/target/linux/mediatek/mt7981/base-files/etc/board.d/01_leds
 +++ b/target/linux/mediatek/mt7981/base-files/etc/board.d/01_leds
-@@ -18,12 +18,18 @@ case "$(board_name)" in
- 	ucidef_set_led_default "green" "GREEN" "360t7:green" "1"
- 	ucidef_set_led_default "red" "RED" "360t7:red" "0"
- 	;;
--zbtlink,z8103ax)
-+*z8103*)
- 	ucidef_set_led_netdev "wan" "WAN" "net" "eth1" "link tx rx"
- 	ucidef_set_led_netdev "wifi2g" "WIFI2G" "wlan2g" "ra0" "link"
+@@ -24,6 +24,12 @@ case "$(board_name)" in
  	ucidef_set_led_netdev "wifi5g" "WIFI5G" "wlan5g" "rax0" "link"
  	ucidef_set_led_netdev "lan" "LAN" "green" "br-lan" "link tx rx"
  	;;
@@ -376,10 +368,10 @@ index 62214039fe3..f026e2bb323 100755
  
  board_config_flush
 diff --git a/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network b/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network
-index 96575d221c4..012eda7e362 100755
+index 0cfd81cd2c..210678948b 100755
 --- a/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network
 +++ b/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network
-@@ -43,6 +43,9 @@ mediatek_setup_interfaces()
+@@ -42,6 +42,9 @@ mediatek_setup_interfaces()
  		ucidef_add_switch "switch0" \
  			"0:lan" "1:lan" "2:lan" "6u@eth0"
  		;;
@@ -389,9 +381,9 @@ index 96575d221c4..012eda7e362 100755
  	*)
  		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" eth1
  		;;
-@@ -132,6 +135,10 @@ mediatek_setup_macs()
+@@ -130,6 +133,10 @@ mediatek_setup_macs()
  		lan_mac=$(mtd_get_mac_binary "Factory" 0x4)
- 		wan_mac=$(macaddr_add "$label_mac" 1)
+ 		wan_mac=$(macaddr_add "$lan_mac" 1)
  		;;
 +	*wt9103*)
 +		lan_mac=$(mtd_get_mac_binary bdinfo 0x9)

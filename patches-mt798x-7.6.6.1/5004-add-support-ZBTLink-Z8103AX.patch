@@ -1,19 +1,19 @@
-From d1e3c33dd43d0b4afa6bc50f6104233a2daa4fff Mon Sep 17 00:00:00 2001
+From 270327b2832b40c72d89b5cb5dce1b66b5ba3631 Mon Sep 17 00:00:00 2001
 From: iRorikon <irorikon@88.com>
-Date: Wed, 24 Jul 2024 07:17:22 +0000
-Subject: [PATCH] add support zbtlink z8103ax
+Date: Thu, 25 Jul 2024 05:14:26 +0000
+Subject: [PATCH] add support ZBTLink Z8103AX
 
 ---
  .../dts/mediatek/mt7981-zbtlink-z8103ax.dts   | 256 ++++++++++++++++++
  target/linux/mediatek/image/mt7981.mk         |  17 ++
  .../mt7981/base-files/etc/board.d/01_leds     |   6 +
- .../mt7981/base-files/etc/board.d/02_network  |   9 +
- 4 files changed, 288 insertions(+)
+ .../mt7981/base-files/etc/board.d/02_network  |  13 +-
+ 4 files changed, 289 insertions(+), 3 deletions(-)
  create mode 100644 target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-zbtlink-z8103ax.dts
 
 diff --git a/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-zbtlink-z8103ax.dts b/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-zbtlink-z8103ax.dts
 new file mode 100644
-index 00000000000..cc13a671507
+index 0000000000..cc13a67150
 --- /dev/null
 +++ b/target/linux/mediatek/files-5.4/arch/arm64/boot/dts/mediatek/mt7981-zbtlink-z8103ax.dts
 @@ -0,0 +1,256 @@
@@ -274,7 +274,7 @@ index 00000000000..cc13a671507
 +	status = "okay";
 +};
 diff --git a/target/linux/mediatek/image/mt7981.mk b/target/linux/mediatek/image/mt7981.mk
-index 3fc1b1d7e0f..26065d84f96 100755
+index 3fc1b1d7e0..26065d84f9 100755
 --- a/target/linux/mediatek/image/mt7981.mk
 +++ b/target/linux/mediatek/image/mt7981.mk
 @@ -273,3 +273,20 @@ define Device/comfast-wr633ax
@@ -299,14 +299,14 @@ index 3fc1b1d7e0f..26065d84f96 100755
 +endef
 +TARGET_DEVICES += mt7981-zbtlink-z8103ax
 diff --git a/target/linux/mediatek/mt7981/base-files/etc/board.d/01_leds b/target/linux/mediatek/mt7981/base-files/etc/board.d/01_leds
-index 779ac123b1c..62214039fe3 100755
+index 779ac123b1..1a911db3ed 100755
 --- a/target/linux/mediatek/mt7981/base-files/etc/board.d/01_leds
 +++ b/target/linux/mediatek/mt7981/base-files/etc/board.d/01_leds
 @@ -18,6 +18,12 @@ case "$(board_name)" in
  	ucidef_set_led_default "green" "GREEN" "360t7:green" "1"
  	ucidef_set_led_default "red" "RED" "360t7:red" "0"
  	;;
-+zbtlink,z8103ax)
++*z8103*)
 +	ucidef_set_led_netdev "wan" "WAN" "net" "eth1" "link tx rx"
 +	ucidef_set_led_netdev "wifi2g" "WIFI2G" "wlan2g" "ra0" "link"
 +	ucidef_set_led_netdev "wifi5g" "WIFI5G" "wlan5g" "rax0" "link"
@@ -316,10 +316,18 @@ index 779ac123b1c..62214039fe3 100755
  
  board_config_flush
 diff --git a/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network b/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network
-index 1170220cce9..96575d221c4 100755
+index 1170220cce..0cfd81cd2c 100755
 --- a/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network
 +++ b/target/linux/mediatek/mt7981/base-files/etc/board.d/02_network
-@@ -38,6 +38,11 @@ mediatek_setup_interfaces()
+@@ -23,7 +23,6 @@ mediatek_setup_interfaces()
+ 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" wan
+ 		;;
+ 	*mt3000*|\
+-	*x3000*|\
+ 	*xe3000*|\
+ 	*mt2500*)
+ 		ucidef_set_interfaces_lan_wan eth1 eth0
+@@ -38,6 +37,11 @@ mediatek_setup_interfaces()
  		ucidef_add_switch "switch0" \
  			"0:lan" "1:lan" "2:lan" "3:lan" "6u@eth0"
  		;;
@@ -331,13 +339,23 @@ index 1170220cce9..96575d221c4 100755
  	*)
  		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" eth1
  		;;
-@@ -123,6 +128,10 @@ mediatek_setup_macs()
+@@ -100,8 +104,7 @@ mediatek_setup_macs()
+ 		wan_mac=$(get_mac_binary /dev/mmcblk0boot1 0x0a)
+ 		lan_mac=$(macaddr_add "$wan_mac" 1)
+ 		;;
+-	*xe3000*|\
+-	*x3000*)
++	*xe3000*)
+ 		wan_mac=$(get_mac_binary /dev/mmcblk0p3 0x0a)
+ 		lan_mac=$(macaddr_add "$wan_mac" 1)
+ 		;;
+@@ -123,6 +126,10 @@ mediatek_setup_macs()
  		lan_mac=$(get_mac_binary /dev/mtdblock3 0xe000)
  		wan_mac=$(macaddr_add "$lan_mac" 1)
  		;;
 +	*z8103*)
 +		lan_mac=$(mtd_get_mac_binary "Factory" 0x4)
-+		wan_mac=$(macaddr_add "$label_mac" 1)
++		wan_mac=$(macaddr_add "$lan_mac" 1)
 +		;;
  	esac
  
